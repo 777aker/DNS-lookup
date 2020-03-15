@@ -8,7 +8,9 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <semaphore.h>
+#include <sys/syscall.h>
 #include "util.c"
+#include "util.h"
 
 int main(int argc, char *argv[]);
 
@@ -24,6 +26,8 @@ struct shared {
   sem_t resolvers;
   // a mutex shared between requesters and solvers used to protect when filled is changed
   pthread_mutex_t shared_m;
+  // boolean saying the requesters are done
+  int requesters_done;
   // shared between requesters
   // the service file requesters write to
   char *service;
