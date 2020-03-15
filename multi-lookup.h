@@ -8,7 +8,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <semaphore.h>
-#include <sys/syscall.h>
+//#include <sys/syscall.h>
 #include "util.c"
 #include "util.h"
 
@@ -52,10 +52,8 @@ struct shared {
   sem_t res_done;
 };
 
-void create_requesters(int number, struct shared *resources);
 void* requesters_func(struct shared *resources);
 
-void create_resolvers(int number, struct shared *resources);
 void* resolvers_func(struct shared *resources);
 
 #endif

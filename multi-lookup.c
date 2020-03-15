@@ -29,7 +29,6 @@ int main(int argc, char *argv[]) {
 
   // this is to find out how many files we are processing
   resources.total = (argc - 5);
-  fprintf(stderr, "%d\n", resources.total);
   // set the top to 0 which is basically where in the names array we are
   resources.top = 0;
   // the file requesters write to
@@ -49,49 +48,38 @@ int main(int argc, char *argv[]) {
   pthread_mutex_init(&resources.req_ser, NULL);
   pthread_mutex_init(&resources.res_m, NULL);
 
+  pthread_t req_tids[atoi(argv[1])];
   // create the threads
-  create_requesters(atoi(argv[1]), &resources);
-  create_resolvers(atoi(argv[2]), &resources);
-  // wait until the threads are done
-  sem_wait(&resources.req_done);
+  for(int i = 0; i < atoi(argv[1]); ++i) {
+    pthread_create(&req_tids[i],NULL, (void *) requesters_func, (void *) &resources);
+  }
+
+  pthread_t res_tids[atoi(argv[2])];
+  // create the threds
+  for(int i = 0; i < atoi(argv[2]); ++i) {
+    pthread_create(&res_tids[i],NULL, (void *) resolvers_func, (void *) &resources);
+  }
+
+  // wait for all of them to finish
+  for(int i = 0; i < atoi(argv[1]); ++i) {
+    pthread_join(req_tids[i],NULL);
+  }
+
+  // make the boolean that the resolvers are done true
+  resources.requesters_done = 1;
+
   // since requesters are done let the resolvers run as much as they want
   for(int i = 0; i < 11; i++) {
+    fprintf(stderr, "go go go");
     sem_post(&resources.resolvers);
   }
-  // wait for the resolvers to finish
-  sem_wait(&resources.res_done);
+
+  // wait for them to finish
+  for(int i = 0; i < atoi(argv[2]); ++i) {
+    pthread_join(res_tids[i],NULL);
+  }
 
   return 0;
-}
-
-void create_requesters(int number, struct shared *resources) {
-  pthread_t tids[number];
-  // create the threads
-  for(int i = 0; i < number; ++i) {
-    pthread_create(&tids[i],NULL, (void *) requesters_func, (void *) resources);
-  }
-  // wait for all of them to finish
-  for(int i = 0; i < number; ++i) {
-    pthread_join(tids[i],NULL);
-  }
-  // signal that requesters are done
-  sem_post(&resources->req_done);
-}
-
-void create_resolvers(int number, struct shared *resources) {
-  pthread_t tids[number];
-  // create the threds
-  for(int i = 0; i < number; ++i) {
-    pthread_create(&tids[i],NULL, (void *) resolvers_func, (void *) resources);
-  }
-  // wait for them to finish
-  for(int i = 0; i < number; ++i) {
-    pthread_join(tids[i],NULL);
-  }
-  // signal that resolvers are done
-  sem_post(&resources->res_done);
-  // make the boolean that the resolvers are done true
-  resources->requesters_done = 1;
 }
 
 // everything above this line works as it supposed to with no warnings
@@ -110,7 +98,7 @@ void* requesters_func(struct shared *resources) {
   // how many files this guy serviced
   int files = 0;
   // store this threads id
-  pid_t id = gettid();
+  pid_t id = 5;
   // while there is work to be done kinda
   while(1) {
     // lock the variable that points to where we are in names files
@@ -126,7 +114,7 @@ void* requesters_func(struct shared *resources) {
       // lock the serviced file
       pthread_mutex_lock(&resources->req_ser);
       // write Thread <threadid> serviced # files
-      file_ptr = fopen(resources->service, "w");
+      file_ptr = fopen(resources->service, "r+");
       fprintf(file_ptr, "Thread <%d> serviced %d files.\n", id, files);
       fclose(file_ptr);
       // unlock the serviced file
@@ -135,15 +123,21 @@ void* requesters_func(struct shared *resources) {
       return 0;
     }
     // get our file
-    file_ptr = fopen(resources->file_names[file_index], "w");
+    file_ptr = fopen(resources->file_names[file_index], "r");
+    if(file_ptr == NULL) {
+      fprintf(stderr, "error opening %s", resources->file_names[file_index]);
+    }
+    fprintf(stderr, "fuckin ell mate");
     // while there are lines to read, store the line in variable line
     while((read = getline(&line, &len, file_ptr)) != -1) {
       // wait so if the shared buffer is full we don't try to overwrite it
       sem_wait(&resources->requesters);
       // lock our shared buffer
       pthread_mutex_lock(&resources->shared_m);
-      resources->filled++;
+      fprintf(stderr, "%d", resources->filled);
+      fprintf(stderr, "check in");
       strcpy(resources->shared_buffer[resources->filled], line);
+      resources->filled++;
       // unlock our buffer
       pthread_mutex_unlock(&resources->shared_m);
       // signal that there is a resource for resolvers to use
@@ -190,7 +184,7 @@ void* resolvers_func(struct shared *resources) {
     // block the results file so we can write to it
     pthread_mutex_lock(&resources->res_m);
     // write line we grabbed from shared buffer, ip from dns to file
-    file_ptr = fopen(resources->results, "w");
+    file_ptr = fopen(resources->results, "r+");
     fprintf(file_ptr, "%s,%s\n", line, ip);
     fclose(file_ptr);
     // unblock the results file
