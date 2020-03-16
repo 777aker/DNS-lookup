@@ -76,12 +76,12 @@ int main(int argc, char *argv[]) {
 
 void* requesters_func(struct shared *resources) {
 
-  char *line;
+  char *line = NULL;
   size_t len;
   int done = 0;
   int files_serviced = 0;
 
-  FILE *file_ptr;
+  FILE *file_ptr = NULL;
 
   while(!done) {
 
@@ -102,6 +102,9 @@ void* requesters_func(struct shared *resources) {
         fprintf(stderr, "Couldn't open one of the name files.\n");
       } else {
         files_serviced++;
+
+        line = NULL;
+
         while(getline(&line, &len, file_ptr) != -1) {
 
           line[strcspn(line, "\n")] = 0;
@@ -119,6 +122,9 @@ void* requesters_func(struct shared *resources) {
           sem_post(&resources->resolvers);
 
         }
+
+        free(line);
+
       }
 
       fclose(file_ptr);
@@ -146,7 +152,7 @@ void* resolvers_func(struct shared *resources) {
   char line[1025];
   char ip[INET6_ADDRSTRLEN];
 
-  FILE *file_ptr;
+  FILE *file_ptr = NULL;
 
   while(1) {
 
@@ -172,6 +178,7 @@ void* resolvers_func(struct shared *resources) {
         fprintf(stderr, "%s couldn't be resolved\n", line);
 
         pthread_mutex_lock(&resources->results_file_m);
+
         file_ptr = fopen(resources->results_file_name, "a");
         if(file_ptr == NULL) {
           file_ptr = fopen(resources->results_file_name, "w");
@@ -188,6 +195,7 @@ void* resolvers_func(struct shared *resources) {
       } else {
 
         pthread_mutex_lock(&resources->results_file_m);
+
         file_ptr = fopen(resources->results_file_name, "a");
         if(file_ptr == NULL) {
           file_ptr = fopen(resources->results_file_name, "w");
