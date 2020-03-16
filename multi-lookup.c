@@ -2,13 +2,24 @@
 
 int main(int argc, char *argv[]) {
 
-  time_t start_time = time(NULL);
-
-  time_t finish_time;
-
-  time_t total_time;
+  struct timespec start_time, stop_time;
 
   struct shared resources;
+
+  clock_gettime(CLOCK_REALTIME, &start_time);
+
+  if(argc < 6) {
+    fprintf(stderr, "Too few arguments.\n");
+    return 0;
+  }
+  if(atoi(argv[1]) > 10 || atoi(argv[2]) > 10) {
+    fprintf(stderr, "Too many threads. Can't be over 10 for either type.\n");
+    return 0;
+  }
+  if(argc-5 > 10) {
+    fprintf(stderr, "Cant read more than 10 name files.\n");
+    return 0;
+  }
 
   resources.top_of_shared_buffer = 0;
   resources.top_of_name_files = 0;
@@ -57,11 +68,8 @@ int main(int argc, char *argv[]) {
     pthread_join(resources.resolver_ids[i], NULL);
   }
 
-  finish_time = time(NULL);
-
-  total_time = finish_time - start_time;
-
-  fprintf(stderr, "Runtime = %ld seconds", total_time);
+  clock_gettime(CLOCK_REALTIME, &stop_time);
+  fprintf(stderr, "%d requesters and %d resolvers took %ld.%09ld seconds\n", atoi(argv[1]), atoi(argv[2]), (long)(stop_time.tv_sec - start_time.tv_sec), labs(stop_time.tv_nsec - start_time.tv_nsec));
 
   return 0;
 }
@@ -91,7 +99,7 @@ void* requesters_func(struct shared *resources) {
 
 
       if(file_ptr == NULL) {
-        fprintf(stderr, "Couldn't open file %s.", resources->name_files[0]);
+        fprintf(stderr, "Couldn't open one of the name files.\n");
       } else {
         files_serviced++;
         while(getline(&line, &len, file_ptr) != -1) {
@@ -161,12 +169,14 @@ void* resolvers_func(struct shared *resources) {
 
       if(dnslookup(line, ip, INET6_ADDRSTRLEN) == -1) {
 
+        fprintf(stderr, "%s couldn't be resolved\n", line);
+
         pthread_mutex_lock(&resources->results_file_m);
         file_ptr = fopen(resources->results_file_name, "a");
         if(file_ptr == NULL) {
           file_ptr = fopen(resources->results_file_name, "w");
           if(file_ptr == NULL) {
-            fprintf(stderr, "file: %s\n", resources->results_file_name);
+            fprintf(stderr, "file: %s couldnt be opened\n", resources->results_file_name);
           }
         }
 
@@ -182,7 +192,7 @@ void* resolvers_func(struct shared *resources) {
         if(file_ptr == NULL) {
           file_ptr = fopen(resources->results_file_name, "w");
           if(file_ptr == NULL) {
-            fprintf(stderr, "file: %s\n", resources->results_file_name);
+            fprintf(stderr, "file: %s couldnt be opened\n", resources->results_file_name);
           }
         }
 
