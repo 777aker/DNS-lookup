@@ -1,1 +1,72 @@
-lkfj;lafd
+Number for requester threads = 1
+
+Number for resolver threads = 1
+
+Total runtime: 13.030749589 seconds
+
+Thread <139951806760704> serviced 5 file(s).
+
+-------------------------------------------------------
+
+Number of requester threads = 1
+
+Number of resolver threads = 3
+
+Total runtime = 6.058754624 seconds
+
+Thread <140086299617024> serviced 5 file(s).
+
+-------------------------------------------------------
+
+Number of requester threads = 3
+
+Number of resolver threads = 1
+
+Total runtime: 4.531100933 seconds
+
+Thread <139800664966912> serviced 1 file(s).
+Thread <139800673359616> serviced 2 file(s).
+Thread <139800656574208> serviced 2 file(s).
+
+-------------------------------------------------------
+
+Number of requester threads = 3
+
+Number of resolver threads = 3
+
+Total runtime: 1.763307870 seconds
+
+Thread <140498400466688> serviced 1 file(s).
+Thread <140498417252096> serviced 2 file(s).
+Thread <140498408859392> serviced 2 file(s).
+
+-------------------------------------------------------
+
+Number of requester threads = 5
+
+Number of resolver threads = 5
+
+Total runtime: 1.652145504 seconds
+
+Thread <139794417809152> serviced 1 file(s).
+Thread <139794384238336> serviced 1 file(s).
+Thread <139794401023744> serviced 1 file(s).
+Thread <139794392631040> serviced 1 file(s).
+Thread <139794409416448> serviced 1 file(s).
+
+-------------------------------------------------------
+
+Number of requester threads = 8
+
+Number of resolver threads = 8
+
+Total runtime: 1.034485559 seconds
+
+Thread <139903862044416> serviced 0 file(s).
+Thread <139903853651712> serviced 0 file(s).
+Thread <139903845259008> serviced 0 file(s).
+Thread <139904111879936> serviced 1 file(s).
+Thread <139904078309120> serviced 1 file(s).
+Thread <139904103487232> serviced 1 file(s).
+Thread <139904086701824> serviced 1 file(s).
+Thread <139904095094528> serviced 1 file(s).
