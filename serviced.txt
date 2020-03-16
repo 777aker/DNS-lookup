@@ -1,1 +1,5 @@
-Thread <5> serviced 1 files.
+Thread <25770271856> serviced 2 file(s).
+Thread <25770272112> serviced 3 file(s).
+Thread <25770272112> serviced 2 file(s).
+Thread <25770271856> serviced 3 file(s).
+Thread <25770271856> serviced 5 file(s).
